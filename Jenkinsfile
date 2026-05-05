@@ -10,7 +10,10 @@ pipeline {
         }
         stage('安装依赖') {
             steps {
-                sh 'pip install pytest --break-system-packages'
+                sh '''
+                    apt-get install -y python3-pip
+                    pip3 install pytest --break-system-packages
+                '''
             }
         }
         stage('运行测试') {
