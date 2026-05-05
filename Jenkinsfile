@@ -11,6 +11,7 @@ pipeline {
         stage('安装依赖') {
             steps {
                 sh '''
+                    apt-get update -y
                     apt-get install -y python3-pip
                     pip3 install pytest --break-system-packages
                 '''
