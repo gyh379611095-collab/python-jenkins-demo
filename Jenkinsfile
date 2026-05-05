@@ -2,46 +2,39 @@ pipeline {
     agent any
 
     stages {
-        stage('拉取代码') {
+        stage('Checkout') {
             steps {
-                echo '正在拉取代码...'
                 checkout scm
             }
         }
-        stage('安装依赖') {
+        stage('Test') {
             steps {
-                sh '''
-                    apt-get update -y
-                    apt-get install -y python3-pip
-                    pip3 install pytest --break-system-packages
-                '''
+                echo "Running tests on branch: ${env.BRANCH_NAME}"
+                sh 'pip install -r requirements.txt'
+                sh 'pytest test_calculator.py'
             }
         }
-        stage('运行测试') {
-            steps {
-                sh 'pytest test_calculator.py -v'
-            }
-        }
-        stage('部署') {
-            steps {
-                echo '正在部署到生产目录...'
-                sh '''
-                    mkdir -p /var/jenkins_home/production
-                    cp cal.py /var/jenkins_home/production/
-                    cp test_calculator.py /var/jenkins_home/production/
-                    echo "部署时间: $(date)" > /var/jenkins_home/production/deploy.log
-                    echo "✅ 部署完成！"
-                '''
-            }
-        }
-    }
 
-    post {
-        success {
-            echo '✅ 所有测试通过，部署成功！'
+        // 只有在 main 分支才执行的“生产部署”
+        stage('Deploy to Prod') {
+            when {
+                branch 'main'
+            }
+            steps {
+                echo 'Deploying to PRODUCTION environment...'
+                sh 'mkdir -p /tmp/prod_deploy && cp -r . /tmp/prod_deploy/'
+            }
         }
-        failure {
-            echo '❌ 测试失败，不进行部署！'
+
+        // 只有在 dev 分支才执行的“测试环境部署”
+        stage('Deploy to Dev/QA') {
+            when {
+                branch 'dev'
+            }
+            steps {
+                echo 'Deploying to DEV/QA environment...'
+                sh 'mkdir -p /tmp/dev_deploy && cp -r . /tmp/dev_deploy/'
+            }
         }
     }
 }
