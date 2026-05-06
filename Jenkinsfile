@@ -10,7 +10,7 @@ pipeline {
         stage('Test') {
             steps {
                 echo "Running tests on branch: ${env.BRANCH_NAME}"
-                sh 'pip install -r requirements.txt'
+                sh 'pip install -r requirements.txt --break-system-packages'
                 sh 'pytest test_calculator.py'
             }
         }
